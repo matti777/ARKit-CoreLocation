@@ -50,7 +50,8 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
     ///Not advisable to change this as the scene is ongoing.
     public var locationEstimateMethod: LocationEstimateMethod = .mostRelevantEstimate
     
-    let locationManager = LocationManager()
+    var locationProvider: LocationProvider?
+
     ///When set to true, displays an axes node at the start of the scene
     public var showAxesNode = false
     
@@ -103,7 +104,7 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
     }
 
     private func finishInitialization() {
-        locationManager.delegate = self
+        locationProvider?.delegate = self
 
         delegate = self
 
@@ -239,7 +240,7 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
     
     public func currentLocation() -> CLLocation? {
         if locationEstimateMethod == .coreLocationDataOnly {
-            return locationManager.currentLocation
+            return locationProvider?.currentLocation
         }
         
         guard let bestEstimate = self.bestLocationEstimate(),
@@ -454,7 +455,7 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
         if !didFetchInitialLocation {
             //Current frame and current location are required for this to be successful
             if session.currentFrame != nil,
-                let currentLocation = self.locationManager.currentLocation {
+                let currentLocation = self.locationProvider?.currentLocation {
                 didFetchInitialLocation = true
                 
                 self.addSceneLocationEstimate(location: currentLocation)
@@ -492,12 +493,12 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
 
 //MARK: LocationManager
 @available(iOS 11.0, *)
-extension SceneLocationView: LocationManagerDelegate {
-    func locationManagerDidUpdateLocation(_ locationManager: LocationManager, location: CLLocation) {
+extension SceneLocationView: LocationProviderDelegate {
+    func locationProviderDidUpdateLocation(_ locationProvider: LocationProvider, location: CLLocation) {
         addSceneLocationEstimate(location: location)
     }
     
-    func locationManagerDidUpdateHeading(_ locationManager: LocationManager, heading: CLLocationDirection, accuracy: CLLocationAccuracy) {
+    func locationProviderDidUpdateHeading(_ locationProvider: LocationProvider, heading: CLLocationDirection, accuracy: CLLocationAccuracy) {
         
     }
 }

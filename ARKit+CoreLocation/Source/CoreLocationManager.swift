@@ -9,15 +9,12 @@
 import Foundation
 import CoreLocation
 
-protocol LocationManagerDelegate: class {
-    func locationManagerDidUpdateLocation(_ locationManager: LocationManager, location: CLLocation)
-    func locationManagerDidUpdateHeading(_ locationManager: LocationManager, heading: CLLocationDirection, accuracy: CLLocationDirection)
-}
-
-///Handles retrieving the location and heading from CoreLocation
-///Does not contain anything related to ARKit or advanced location
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    weak var delegate: LocationManagerDelegate?
+/// CoreLocation (using CLLocationManager) implementation for LocationProvider.
+///
+/// Handles retrieving the location and heading from CoreLocation
+/// Does not contain anything related to ARKit or advanced location
+class CoreLocationManager: NSObject, CLLocationManagerDelegate, LocationProvider {
+    weak var delegate: LocationProviderDelegate?
     
     private var locationManager: CLLocationManager?
     
@@ -42,21 +39,22 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         
         self.currentLocation = self.locationManager!.location
     }
-    
-    func requestAuthorization() {
-        if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedAlways ||
-            CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse {
-            return
-        }
-        
-        if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.denied ||
-            CLLocationManager.authorizationStatus() == CLAuthorizationStatus.restricted {
-            return
-        }
-        
-        self.locationManager?.requestWhenInUseAuthorization()
-    }
-    
+
+    //TODO not used - remove or use?
+//    func requestAuthorization() {
+//        if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedAlways ||
+//            CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse {
+//            return
+//        }
+//
+//        if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.denied ||
+//            CLLocationManager.authorizationStatus() == CLAuthorizationStatus.restricted {
+//            return
+//        }
+//
+//        self.locationManager?.requestWhenInUseAuthorization()
+//    }
+
     //MARK: - CLLocationManagerDelegate
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
@@ -65,7 +63,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         for location in locations {
-            self.delegate?.locationManagerDidUpdateLocation(self, location: location)
+            self.delegate?.locationProviderDidUpdateLocation(self, location: location)
         }
         
         self.currentLocation = manager.location
@@ -80,7 +78,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         
         self.headingAccuracy = newHeading.headingAccuracy
         
-        self.delegate?.locationManagerDidUpdateHeading(self, heading: self.heading!, accuracy: newHeading.headingAccuracy)
+        self.delegate?.locationProviderDidUpdateHeading(self, heading: self.heading!, accuracy: newHeading.headingAccuracy)
     }
     
     func locationManagerShouldDisplayHeadingCalibration(_ manager: CLLocationManager) -> Bool {

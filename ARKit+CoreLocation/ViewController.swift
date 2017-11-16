@@ -40,7 +40,9 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        sceneLocationView.locationProvider = CoreLocationManager()
+
         infoLabel.font = UIFont.systemFont(ofSize: 10)
         infoLabel.textAlignment = .left
         infoLabel.textColor = UIColor.white
@@ -200,8 +202,8 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             infoLabel.text!.append("Euler x: \(String(format: "%.2f", eulerAngles.x)), y: \(String(format: "%.2f", eulerAngles.y)), z: \(String(format: "%.2f", eulerAngles.z))\n")
         }
         
-        if let heading = sceneLocationView.locationManager.heading,
-            let accuracy = sceneLocationView.locationManager.headingAccuracy {
+        if let heading = sceneLocationView.locationProvider?.heading,
+            let accuracy = sceneLocationView.locationProvider?.headingAccuracy {
             infoLabel.text!.append("Heading: \(heading)º, accuracy: \(Int(round(accuracy)))º\n")
         }
         
