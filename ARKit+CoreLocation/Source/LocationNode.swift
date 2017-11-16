@@ -13,6 +13,7 @@ import CoreLocation
 ///A location node can be added to a scene using a coordinate.
 ///Its scale and position should not be adjusted, as these are used for scene layout purposes
 ///To adjust the scale and position of items within a node, you can add them to a child node and adjust them there
+@available(iOS 11.0, *)
 open class LocationNode: SCNNode {
     ///Location can be changed and confirmed later by SceneLocationView.
     public var location: CLLocation!
@@ -51,6 +52,7 @@ open class LocationNode: SCNNode {
     }
 }
 
+@available(iOS 11.0, *)
 open class LocationAnnotationNode: LocationNode {
     ///An image to use for the annotation
     ///When viewed from a distance, the annotation will be seen at the size provided
