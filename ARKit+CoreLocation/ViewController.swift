@@ -41,7 +41,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        sceneLocationView.locationProvider = CoreLocationManager()
+        sceneLocationView.locationProvider = CoreLocationProvider()
 
         infoLabel.font = UIFont.systemFont(ofSize: 10)
         infoLabel.textAlignment = .left

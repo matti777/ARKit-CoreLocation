@@ -13,7 +13,7 @@ import CoreLocation
 ///
 /// Handles retrieving the location and heading from CoreLocation
 /// Does not contain anything related to ARKit or advanced location
-class CoreLocationManager: NSObject, CLLocationManagerDelegate, LocationProvider {
+class CoreLocationProvider: NSObject, CLLocationManagerDelegate, LocationProvider {
     weak var delegate: LocationProviderDelegate?
     
     private var locationManager: CLLocationManager?
