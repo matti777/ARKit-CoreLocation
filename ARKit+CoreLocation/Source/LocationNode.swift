@@ -14,7 +14,7 @@ import CoreLocation
 ///Its scale and position should not be adjusted, as these are used for scene layout purposes
 ///To adjust the scale and position of items within a node, you can add them to a child node and adjust them there
 @available(iOS 11.0, *)
-open class LocationNode: SCNNode {
+@objc open class LocationNode: SCNNode {
     ///Location can be changed and confirmed later by SceneLocationView.
     public var location: CLLocation!
     
@@ -35,12 +35,15 @@ open class LocationNode: SCNNode {
     ///but the position is generally more accurate.
     ///Defaults to true.
     public var continuallyAdjustNodePositionWhenWithinRange = true
-    
+
+    /// Whether to hide objects closer than a certain distance
+    public var hideWhenNearby = true
+
     ///Whether a node's position and scale should be updated automatically on a continual basis.
     ///This should only be set to false if you plan to manually update position and scale
     ///at regular intervals. You can do this with `SceneLocationView`'s `updatePositionOfLocationNode`.
     public var continuallyUpdatePositionAndScale = true
-    
+
     public init(location: CLLocation?) {
         self.location = location
         self.locationConfirmed = location != nil
@@ -53,7 +56,7 @@ open class LocationNode: SCNNode {
 }
 
 @available(iOS 11.0, *)
-open class LocationAnnotationNode: LocationNode {
+@objc open class LocationAnnotationNode: LocationNode {
     ///An image to use for the annotation
     ///When viewed from a distance, the annotation will be seen at the size provided
     ///e.g. if the size is 100x100px, the annotation will take up approx 100x100 points on screen.
@@ -69,26 +72,30 @@ open class LocationAnnotationNode: LocationNode {
     ///Scaling relative to distance may be useful with local navigation-based uses
     ///For landmarks in the distance, the default is correct
     public var scaleRelativeToDistance = false
-    
-    public init(location: CLLocation?, image: UIImage) {
+
+    public init(location: CLLocation?, image: UIImage, scale: CGFloat = 0.01) {
         self.image = image
-        
-        let plane = SCNPlane(width: image.size.width / 100, height: image.size.height / 100)
+        annotationNode = SCNNode()
+
+        super.init(location: location)
+
+        commonInit(scale: scale)
+    }
+
+    private func commonInit(scale: CGFloat) {
+        let plane = SCNPlane(width: image.size.width * scale, height: image.size.height * scale)
         plane.firstMaterial!.diffuse.contents = image
         plane.firstMaterial!.lightingModel = .constant
-        
-        annotationNode = SCNNode()
+
         annotationNode.geometry = plane
-        
-        super.init(location: location)
-        
+
         let billboardConstraint = SCNBillboardConstraint()
         billboardConstraint.freeAxes = SCNBillboardAxis.Y
         constraints = [billboardConstraint]
-        
+
         addChildNode(annotationNode)
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

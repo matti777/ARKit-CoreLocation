@@ -40,19 +40,25 @@ public enum LocationEstimateMethod {
 //Should conform to delegate here, add in future commit
 @available(iOS 11.0, *)
 public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
-    ///The limit to the scene, in terms of what data is considered reasonably accurate.
-    ///Measured in meters.
+    /// The limit to the scene, in terms of what data is considered reasonably accurate.
+    /// Measured in meters.
     private static let sceneLimit = 100.0
     
     public weak var locationDelegate: SceneLocationViewDelegate?
     
-    ///The method to use for determining locations.
-    ///Not advisable to change this as the scene is ongoing.
+    /// The method to use for determining locations.
+    /// Not advisable to change this as the scene is ongoing.
     public var locationEstimateMethod: LocationEstimateMethod = .mostRelevantEstimate
-    
-    var locationProvider: LocationProvider?
 
-    ///When set to true, displays an axes node at the start of the scene
+    /// LocationProvider provides the location / heading data, typically from
+    /// a GPS / other positioning source.
+    public var locationProvider: LocationProvider? {
+        didSet {
+            locationProvider?.delegate = self
+        }
+    }
+
+    /// When set to true, displays an axes node at the start of the scene
     public var showAxesNode = false
     
     private(set) var locationNodes = [LocationNode]()
@@ -104,8 +110,6 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
     }
 
     private func finishInitialization() {
-        locationProvider?.delegate = self
-
         delegate = self
 
         // Show statistics such as fps and timing information
@@ -366,16 +370,24 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
         //Position is set to a position coordinated via the current position
         let locationTranslation = currentLocation.translation(toLocation: locationNodeLocation)
         
-        
         let adjustedDistance: CLLocationDistance
         
         let distance = locationNodeLocation.distance(from: currentLocation)
-        
+
+        let distanceThreshold = Double(20)
+        let yPosition = Float(2.5)
+        locationNode.isHidden = false
+
+        if locationNode.hideWhenNearby && (distance < distanceThreshold) {
+            locationNode.isHidden = true
+        }
+
         if locationNode.locationConfirmed &&
-            (distance > 100 || locationNode.continuallyAdjustNodePositionWhenWithinRange || initialSetup) {
-            if distance > 100 {
+            (distance > distanceThreshold || locationNode.continuallyAdjustNodePositionWhenWithinRange || initialSetup) {
+            if distance > distanceThreshold {
                 //If the item is too far away, bring it closer and scale it down
-                let scale = 100 / Float(distance)
+//                print("distance: \(distance)")
+                let scale = Float(distanceThreshold) / Float(distance)
                 
                 adjustedDistance = distance * Double(scale)
                 
@@ -386,19 +398,19 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
                 
                 let position = SCNVector3(
                     x: currentPosition.x + adjustedTranslation.x,
-                    y: currentPosition.y + adjustedTranslation.y,
+                    y: yPosition,//currentPosition.y + adjustedTranslation.y,
                     z: currentPosition.z - adjustedTranslation.z)
                 
                 locationNode.position = position
                 
-                locationNode.scale = SCNVector3(x: scale, y: scale, z: scale)
+                locationNode.scale = SCNVector3(x: scale * 10, y: scale * 10, z: scale * 10)
             } else {
                 adjustedDistance = distance
                 let position = SCNVector3(
                     x: currentPosition.x + Float(locationTranslation.longitudeTranslation),
-                    y: currentPosition.y + Float(locationTranslation.altitudeTranslation),
+                    y: yPosition,//currentPosition.y + Float(locationTranslation.altitudeTranslation),
                     z: currentPosition.z - Float(locationTranslation.latitudeTranslation))
-                
+
                 locationNode.position = position
                 locationNode.scale = SCNVector3(x: 1, y: 1, z: 1)
             }
@@ -494,11 +506,12 @@ public class SceneLocationView: ARSCNView, ARSCNViewDelegate {
 //MARK: LocationManager
 @available(iOS 11.0, *)
 extension SceneLocationView: LocationProviderDelegate {
-    func locationProviderDidUpdateLocation(_ locationProvider: LocationProvider, location: CLLocation) {
+    public func locationProviderDidUpdateLocation(_ locationProvider: LocationProvider, location: CLLocation) {
+        print("locationProviderDidUpdateLocation: %@", location)
         addSceneLocationEstimate(location: location)
     }
     
-    func locationProviderDidUpdateHeading(_ locationProvider: LocationProvider, heading: CLLocationDirection, accuracy: CLLocationAccuracy) {
+    public func locationProviderDidUpdateHeading(_ locationProvider: LocationProvider, heading: CLLocationDirection, accuracy: CLLocationAccuracy) {
         
     }
 }

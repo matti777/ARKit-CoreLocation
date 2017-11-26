@@ -13,15 +13,15 @@ import CoreLocation
 ///
 /// Handles retrieving the location and heading from CoreLocation
 /// Does not contain anything related to ARKit or advanced location
-class CoreLocationProvider: NSObject, CLLocationManagerDelegate, LocationProvider {
+@objc class CoreLocationProvider: NSObject, CLLocationManagerDelegate, LocationProvider {
     weak var delegate: LocationProviderDelegate?
     
     private var locationManager: CLLocationManager?
     
     var currentLocation: CLLocation?
     
-    var heading: CLLocationDirection?
-    var headingAccuracy: CLLocationDegrees?
+    var heading: CLLocationDirection = 0
+    var headingAccuracy: CLLocationDegrees = 0
     
     override init() {
         super.init()
@@ -78,7 +78,7 @@ class CoreLocationProvider: NSObject, CLLocationManagerDelegate, LocationProvide
         
         self.headingAccuracy = newHeading.headingAccuracy
         
-        self.delegate?.locationProviderDidUpdateHeading(self, heading: self.heading!, accuracy: newHeading.headingAccuracy)
+        self.delegate?.locationProviderDidUpdateHeading(self, heading: self.heading, accuracy: newHeading.headingAccuracy)
     }
     
     func locationManagerShouldDisplayHeadingCalibration(_ manager: CLLocationManager) -> Bool {
